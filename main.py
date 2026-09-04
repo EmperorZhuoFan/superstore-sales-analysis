@@ -24,11 +24,11 @@ from src.clustering import (
 )
 
 
-def main():
+# ============================================================
+# MAIN PIPELINE
+# ============================================================
 
-    # ============================================================
-    # 1. PROJECT SETUP
-    # ============================================================
+def main():
 
     setup_visualization()
 
@@ -36,19 +36,19 @@ def main():
     print("SUPERSTORE SALES ANALYSIS")
     print("=" * 70)
 
+    # --------------------------------------------------------
+    # LOAD DATA
+    # --------------------------------------------------------
 
-    # ============================================================
-    # 2. LOAD DATA
-    # ============================================================
+    file_path = "samplesuperstore.csv"
 
-    file_path = "https://raw.githubusercontent.com/EmperorZhuoFan/superstore-sales-analysis/refs/heads/main/samplesuperstore.csv"
+    df, df_original = load_data(
+        file_path
+    )
 
-    df, df_original = load_data(file_path)
-
-
-    # ============================================================
-    # 3. DATA UNDERSTANDING
-    # ============================================================
+    # --------------------------------------------------------
+    # DATA UNDERSTANDING
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
@@ -57,10 +57,9 @@ def main():
 
     df = inspect_data(df)
 
-
-    # ============================================================
-    # 4. DATA PREPARATION
-    # ============================================================
+    # --------------------------------------------------------
+    # DATA PREPARATION
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
@@ -69,10 +68,9 @@ def main():
 
     df = prepare_data(df)
 
-
-    # ============================================================
-    # 5. EXPLORATORY DATA ANALYSIS
-    # ============================================================
+    # --------------------------------------------------------
+    # EXPLORATORY DATA ANALYSIS
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
@@ -81,22 +79,22 @@ def main():
 
     profit_summary = run_eda(df)
 
-
-    # ============================================================
-    # 6. SUPERVISED LEARNING
-    # ============================================================
+    # --------------------------------------------------------
+    # SUPERVISED LEARNING
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
     print("SUPERVISED LEARNING")
     print("=" * 70)
 
-    supervised_results = run_supervised_learning(df)
+    supervised_results = (
+        run_supervised_learning(df)
+    )
 
-
-    # ============================================================
-    # 7. BEST MODEL EVALUATION
-    # ============================================================
+    # --------------------------------------------------------
+    # BEST MODEL EVALUATION
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
@@ -106,16 +104,17 @@ def main():
     X_test = supervised_results["X_test"]
     y_test = supervised_results["y_test"]
 
-    best_model = supervised_results["best_model"]
-    best_model_name = supervised_results["best_model_name"]
+    best_model = (
+        supervised_results["best_model"]
+    )
 
+    best_model_name = (
+        supervised_results["best_model_name"]
+    )
 
-    print(f"\nBest Model: {best_model_name}")
-
-
-    # ------------------------------------------------------------
-    # Confusion Matrix
-    # ------------------------------------------------------------
+    print(
+        f"\nBest Model: {best_model_name}"
+    )
 
     best_predictions = show_confusion_matrix(
         best_model,
@@ -123,37 +122,34 @@ def main():
         y_test
     )
 
+    print(
+        "\nClassification Report:"
+    )
 
-    # ------------------------------------------------------------
-    # Classification Report
-    # ------------------------------------------------------------
-
-    print("\nClassification Report:")
     show_classification_report(
         y_test,
         best_predictions
     )
 
-
-    # ------------------------------------------------------------
-    # Feature Importance
-    # ------------------------------------------------------------
-
-    print("\nFeature Importance:")
+    print(
+        "\nFeature Importance:"
+    )
 
     importance = show_feature_importance(
         best_model,
         best_model_name
     )
 
-
-    # ============================================================
-    # 8. UNSUPERVISED LEARNING — CUSTOMER CLUSTERING
-    # ============================================================
+    # --------------------------------------------------------
+    # UNSUPERVISED LEARNING
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
-    print("UNSUPERVISED LEARNING — CUSTOMER SEGMENTATION")
+    print(
+        "UNSUPERVISED LEARNING — "
+        "CUSTOMER SEGMENTATION"
+    )
     print("=" * 70)
 
     clustering_results = run_clustering(
@@ -161,20 +157,29 @@ def main():
         optimal_k=4
     )
 
-
-    # ============================================================
-    # 9. FINAL PROJECT SUMMARY
-    # ============================================================
+    # --------------------------------------------------------
+    # FINAL PROJECT SUMMARY
+    # --------------------------------------------------------
 
     print("\n")
     print("=" * 70)
     print("FINAL PROJECT SUMMARY")
     print("=" * 70)
 
-    print(f"\nOriginal Dataset Shape: {df_original.shape}")
-    print(f"Prepared Dataset Shape: {df.shape}")
+    print(
+        f"\nOriginal Dataset Shape: "
+        f"{df_original.shape}"
+    )
 
-    print(f"\nBest Supervised Model: {best_model_name}")
+    print(
+        f"Prepared Dataset Shape: "
+        f"{df.shape}"
+    )
+
+    print(
+        f"\nBest Supervised Model: "
+        f"{best_model_name}"
+    )
 
     print(
         f"Tuned Random Forest F1: "
@@ -201,14 +206,23 @@ def main():
         f"{len(clustering_results['cluster_sizes'])}"
     )
 
-    print("\nCustomer Segment Sizes:")
-    print(clustering_results["cluster_sizes"])
+    print(
+        "\nCustomer Segment Sizes:"
+    )
+
+    print(
+        clustering_results["cluster_sizes"]
+    )
 
     print("\n")
     print("=" * 70)
     print("PROJECT COMPLETED SUCCESSFULLY")
     print("=" * 70)
 
+
+# ============================================================
+# RUN PROJECT
+# ============================================================
 
 if __name__ == "__main__":
     main()

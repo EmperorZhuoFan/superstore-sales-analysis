@@ -1,5 +1,4 @@
 import pandas as pd
-
 from IPython.display import display
 
 from sklearn.model_selection import (
@@ -40,7 +39,6 @@ from src.evaluation import (
 # FEATURES AND TARGET
 # ============================================================
 
-
 def create_features_and_target(df):
 
     features = [
@@ -60,34 +58,15 @@ def create_features_and_target(df):
         "Sales Per Unit"
     ]
 
-    # Profit is intentionally excluded.
-    #
-    # Profit Status is directly derived from Profit.
-    # Including Profit as a feature would cause target leakage.
-
-    X = df[features].copy()
-
-    y = df["Profit Status"].copy()
-
-    print(" --- Supervised Learning ---")
-
-    print(
-        "Feature matrix:",
-        X.shape
-    )
-
-    print(
-        "Target:",
-        y.shape
-    )
+    X = df[features]
+    y = df["Profit Status"]
 
     return X, y
 
 
 # ============================================================
-# PREPROCESSOR
+# PREPROCESSING
 # ============================================================
-
 
 def create_preprocessor():
 
@@ -111,22 +90,31 @@ def create_preprocessor():
         "Sales Per Unit"
     ]
 
-    preprocessor = ColumnTransformer(
-        transformers=[
-            (
-                "num",
-                StandardScaler(),
-                numerical_features
-            ),
-            (
-                "cat",
-                OneHotEncoder(
-                    handle_unknown="ignore"
-                ),
-                categorical_features
+    numerical_transformer = Pipeline([
+        ("scaler", StandardScaler())
+    ])
+
+    categorical_transformer = Pipeline([
+        (
+            "encoder",
+            OneHotEncoder(
+                handle_unknown="ignore"
             )
-        ]
-    )
+        )
+    ])
+
+    preprocessor = ColumnTransformer([
+        (
+            "num",
+            numerical_transformer,
+            numerical_features
+        ),
+        (
+            "cat",
+            categorical_transformer,
+            categorical_features
+        )
+    ])
 
     return preprocessor
 
@@ -135,25 +123,14 @@ def create_preprocessor():
 # TRAIN / TEST SPLIT
 # ============================================================
 
-
 def split_data(X, y):
 
-    X_train, X_test, y_train, y_test = (
-        train_test_split(
-            X,
-            y,
-            test_size=0.2,
-            random_state=42,
-            stratify=y
-        )
-    )
-
-    print(
-        f"Training samples: {len(X_train)}"
-    )
-
-    print(
-        f"Testing samples: {len(X_test)}"
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=0.2,
+        random_state=42,
+        stratify=y
     )
 
     return (
@@ -165,34 +142,40 @@ def split_data(X, y):
 
 
 # ============================================================
-# BASELINE
+# BASELINE MODEL
 # ============================================================
 
+def train_baseline(X_train, X_test, y_train, y_test):
 
-def train_models(
-    X_train,
-    y_train,
-    preprocessor
-):
-
-    baseline = Pipeline(
-        steps=[
-            (
-                "preprocessor",
-                preprocessor
-            ),
-            (
-                "model",
-                DummyClassifier(
-                    strategy="most_frequent"
-                )
+    baseline = Pipeline([
+        (
+            "preprocessor",
+            create_preprocessor()
+        ),
+        (
+            "model",
+            DummyClassifier(
+                strategy="most_frequent"
             )
-        ]
-    )
+        )
+    ])
 
     baseline.fit(
         X_train,
         y_train
+    )
+
+    predictions = baseline.predict(
+        X_test
+    )
+
+    accuracy = accuracy_score(
+        y_test,
+        predictions
+    )
+
+    print(
+        f"Baseline Accuracy: {accuracy:.3f}"
     )
 
     return baseline
@@ -202,15 +185,13 @@ def train_models(
 # TRAIN ALL MODELS
 # ============================================================
 
+def train_all_models(X_train, y_train):
 
-def train_all_models(
-    X_train,
-    y_train,
-    preprocessor
-):
+    preprocessor = create_preprocessor()
 
-    logistic_model = Pipeline(
-        steps=[
+    models = {
+
+        "Logistic Regression": Pipeline([
             (
                 "preprocessor",
                 preprocessor
@@ -222,20 +203,12 @@ def train_all_models(
                     random_state=42
                 )
             )
-        ]
-    )
+        ]),
 
-    logistic_model.fit(
-        X_train,
-        y_train
-    )
-
-
-    decision_tree = Pipeline(
-        steps=[
+        "Decision Tree": Pipeline([
             (
                 "preprocessor",
-                preprocessor
+                create_preprocessor()
             ),
             (
                 "model",
@@ -245,20 +218,12 @@ def train_all_models(
                     random_state=42
                 )
             )
-        ]
-    )
+        ]),
 
-    decision_tree.fit(
-        X_train,
-        y_train
-    )
-
-
-    bagging_model = Pipeline(
-        steps=[
+        "Bagging": Pipeline([
             (
                 "preprocessor",
-                preprocessor
+                create_preprocessor()
             ),
             (
                 "model",
@@ -272,20 +237,12 @@ def train_all_models(
                     n_jobs=-1
                 )
             )
-        ]
-    )
+        ]),
 
-    bagging_model.fit(
-        X_train,
-        y_train
-    )
-
-
-    random_forest = Pipeline(
-        steps=[
+        "Random Forest": Pipeline([
             (
                 "preprocessor",
-                preprocessor
+                create_preprocessor()
             ),
             (
                 "model",
@@ -297,20 +254,12 @@ def train_all_models(
                     n_jobs=-1
                 )
             )
-        ]
-    )
+        ]),
 
-    random_forest.fit(
-        X_train,
-        y_train
-    )
-
-
-    adaboost_model = Pipeline(
-        steps=[
+        "AdaBoost": Pipeline([
             (
                 "preprocessor",
-                preprocessor
+                create_preprocessor()
             ),
             (
                 "model",
@@ -320,20 +269,12 @@ def train_all_models(
                     random_state=42
                 )
             )
-        ]
-    )
+        ]),
 
-    adaboost_model.fit(
-        X_train,
-        y_train
-    )
-
-
-    gradient_boosting = Pipeline(
-        steps=[
+        "Gradient Boosting": Pipeline([
             (
                 "preprocessor",
-                preprocessor
+                create_preprocessor()
             ),
             (
                 "model",
@@ -344,31 +285,30 @@ def train_all_models(
                     random_state=42
                 )
             )
-        ]
-    )
-
-    gradient_boosting.fit(
-        X_train,
-        y_train
-    )
-
-
-    models = {
-        "Logistic Regression": logistic_model,
-        "Decision Tree": decision_tree,
-        "Bagging": bagging_model,
-        "Random Forest": random_forest,
-        "AdaBoost": adaboost_model,
-        "Gradient Boosting": gradient_boosting
+        ])
     }
 
-    return models
+    trained_models = {}
+
+    for name, model in models.items():
+
+        print(
+            f"Training {name}..."
+        )
+
+        model.fit(
+            X_train,
+            y_train
+        )
+
+        trained_models[name] = model
+
+    return trained_models
 
 
 # ============================================================
-# EVALUATE ALL MODELS
+# MODEL EVALUATION
 # ============================================================
-
 
 def evaluate_all_models(
     models,
@@ -378,16 +318,16 @@ def evaluate_all_models(
 
     results = []
 
-    for model_name, model in models.items():
+    for name, model in models.items():
 
-        results.append(
-            evaluate_model(
-                model,
-                X_test,
-                y_test,
-                model_name
-            )
+        result = evaluate_model(
+            model,
+            X_test,
+            y_test,
+            name
         )
+
+        results.append(result)
 
     model_results = compare_models(
         results
@@ -397,9 +337,8 @@ def evaluate_all_models(
 
 
 # ============================================================
-# CROSS-VALIDATE ALL MODELS
+# CROSS-VALIDATION
 # ============================================================
-
 
 def cross_validate_models(
     models,
@@ -416,35 +355,28 @@ def cross_validate_models(
             X_train,
             y_train,
             cv=5,
-            scoring="f1",
-            n_jobs=-1
+            scoring="f1"
         )
 
-        cv_results.append(
-            {
-                "Model": name,
-                "Mean CV F1": scores.mean(),
-                "Std CV F1": scores.std()
-            }
-        )
+        cv_results.append({
+            "Model": name,
+            "Mean F1": scores.mean(),
+            "Std": scores.std()
+        })
 
-    cv_results = (
-        pd.DataFrame(cv_results)
-        .sort_values(
-            "Mean CV F1",
-            ascending=False
-        )
-        .reset_index(drop=True)
+    cv_results = pd.DataFrame(
+        cv_results
+    ).sort_values(
+        "Mean F1",
+        ascending=False
     )
 
-    print(
-        "5-Fold Cross-Validation Results:"
-    )
+    print("\nCross-Validation Results:")
 
     display(
         cv_results.style.format({
-            "Mean CV F1": "{:.3f}",
-            "Std CV F1": "{:.3f}"
+            "Mean F1": "{:.3f}",
+            "Std": "{:.3f}"
         })
     )
 
@@ -452,32 +384,28 @@ def cross_validate_models(
 
 
 # ============================================================
-# TUNE DECISION TREE
+# DECISION TREE TUNING
 # ============================================================
-
 
 def tune_decision_tree(
     X_train,
-    y_train,
-    preprocessor
+    y_train
 ):
 
-    tree_pipeline = Pipeline(
-        steps=[
-            (
-                "preprocessor",
-                preprocessor
-            ),
-            (
-                "model",
-                DecisionTreeClassifier(
-                    random_state=42
-                )
+    pipeline = Pipeline([
+        (
+            "preprocessor",
+            create_preprocessor()
+        ),
+        (
+            "model",
+            DecisionTreeClassifier(
+                random_state=42
             )
-        ]
-    )
+        )
+    ])
 
-    tree_param_grid = {
+    param_grid = {
         "model__max_depth": [
             3,
             5,
@@ -497,63 +425,58 @@ def tune_decision_tree(
         ]
     }
 
-    tree_grid = GridSearchCV(
-        tree_pipeline,
-        tree_param_grid,
+    grid = GridSearchCV(
+        pipeline,
+        param_grid,
         cv=5,
         scoring="f1",
         n_jobs=-1
     )
 
-    tree_grid.fit(
+    grid.fit(
         X_train,
         y_train
     )
 
     print(
-        "Best Decision Tree parameters:"
+        "\nBest Decision Tree Parameters:"
+    )
+    print(
+        grid.best_params_
     )
 
     print(
-        tree_grid.best_params_
+        f"Best Decision Tree CV F1: "
+        f"{grid.best_score_:.4f}"
     )
 
-    print(
-        f"Best CV F1: "
-        f"{tree_grid.best_score_:.4f}"
-    )
-
-    return tree_grid
+    return grid
 
 
 # ============================================================
-# TUNE RANDOM FOREST
+# RANDOM FOREST TUNING
 # ============================================================
-
 
 def tune_random_forest(
     X_train,
-    y_train,
-    preprocessor
+    y_train
 ):
 
-    rf_pipeline = Pipeline(
-        steps=[
-            (
-                "preprocessor",
-                preprocessor
-            ),
-            (
-                "model",
-                RandomForestClassifier(
-                    random_state=42,
-                    n_jobs=-1
-                )
+    pipeline = Pipeline([
+        (
+            "preprocessor",
+            create_preprocessor()
+        ),
+        (
+            "model",
+            RandomForestClassifier(
+                random_state=42,
+                n_jobs=-1
             )
-        ]
-    )
+        )
+    ])
 
-    rf_param_grid = {
+    param_grid = {
         "model__n_estimators": [
             100,
             200,
@@ -572,77 +495,80 @@ def tune_random_forest(
         ]
     }
 
-    rf_grid = GridSearchCV(
-        rf_pipeline,
-        rf_param_grid,
+    grid = GridSearchCV(
+        pipeline,
+        param_grid,
         cv=5,
         scoring="f1",
         n_jobs=-1
     )
 
-    rf_grid.fit(
+    grid.fit(
         X_train,
         y_train
     )
 
     print(
-        "Best Random Forest parameters:"
+        "\nBest Random Forest Parameters:"
+    )
+    print(
+        grid.best_params_
     )
 
     print(
-        rf_grid.best_params_
+        f"Best Random Forest CV F1: "
+        f"{grid.best_score_:.4f}"
     )
 
-    print(
-        f"Best CV F1: "
-        f"{rf_grid.best_score_:.4f}"
-    )
-
-    return rf_grid
+    return grid
 
 
 # ============================================================
 # FINAL MODEL COMPARISON
 # ============================================================
 
-
 def create_final_model_comparison(
-    models,
+    model_results,
     tree_grid,
     rf_grid,
     X_test,
     y_test
 ):
 
-    tuned_tree = (
-        tree_grid.best_estimator_
-    )
+    final_results = model_results.copy()
 
-    tuned_random_forest = (
-        rf_grid.best_estimator_
-    )
-
-    final_models = {
-        **models,
-        "Tuned Decision Tree": tuned_tree,
-        "Tuned Random Forest": tuned_random_forest
+    tuned_models = {
+        "Tuned Decision Tree": tree_grid.best_estimator_,
+        "Tuned Random Forest": rf_grid.best_estimator_
     }
 
-    final_results = []
+    tuned_results = []
 
-    for model_name, model in final_models.items():
+    for name, model in tuned_models.items():
 
-        final_results.append(
-            evaluate_model(
-                model,
-                X_test,
-                y_test,
-                model_name
-            )
+        result = evaluate_model(
+            model,
+            X_test,
+            y_test,
+            name
         )
 
-    final_model_results = (
-        pd.DataFrame(final_results)
+        tuned_results.append(result)
+
+    tuned_results = pd.DataFrame(
+        tuned_results
+    )
+
+    final_results = pd.concat(
+        [
+            final_results,
+            tuned_results
+        ],
+        ignore_index=True
+    )
+
+    final_results = (
+        final_results
         .sort_values(
             "F1",
             ascending=False
@@ -651,11 +577,11 @@ def create_final_model_comparison(
     )
 
     print(
-        "Final Model Comparison:"
+        "\nFinal Model Comparison:"
     )
 
     display(
-        final_model_results.style.format({
+        final_results.style.format({
             "Accuracy": "{:.3f}",
             "Precision": "{:.3f}",
             "Recall": "{:.3f}",
@@ -665,15 +591,14 @@ def create_final_model_comparison(
     )
 
     return (
-        final_models,
-        final_model_results
+        final_results,
+        tuned_models
     )
 
 
 # ============================================================
 # FINAL CROSS-VALIDATION COMPARISON
 # ============================================================
-
 
 def create_final_cv_comparison(
     cv_results,
@@ -683,23 +608,23 @@ def create_final_cv_comparison(
 
     final_cv_results = cv_results.copy()
 
-    tuned_results = pd.DataFrame([
+    tuned_cv_results = pd.DataFrame([
         {
             "Model": "Tuned Decision Tree",
-            "Mean CV F1": tree_grid.best_score_,
-            "Std CV F1": None
+            "Mean F1": tree_grid.best_score_,
+            "Std": None
         },
         {
             "Model": "Tuned Random Forest",
-            "Mean CV F1": rf_grid.best_score_,
-            "Std CV F1": None
+            "Mean F1": rf_grid.best_score_,
+            "Std": None
         }
     ])
 
     final_cv_results = pd.concat(
         [
             final_cv_results,
-            tuned_results
+            tuned_cv_results
         ],
         ignore_index=True
     )
@@ -707,43 +632,30 @@ def create_final_cv_comparison(
     final_cv_results = (
         final_cv_results
         .sort_values(
-            "Mean CV F1",
+            "Mean F1",
             ascending=False
         )
         .reset_index(drop=True)
     )
 
     print(
-        "Final Cross-Validation Comparison:"
+        "\nFinal Cross-Validation Comparison:"
     )
 
-    display(
-        final_cv_results.style.format({
-            "Mean CV F1": "{:.3f}",
-            "Std CV F1": "{:.3f}"
-        })
-    )
+    display(final_cv_results)
 
     return final_cv_results
 
 
 # ============================================================
-# MAIN SUPERVISED LEARNING PIPELINE
+# COMPLETE SUPERVISED LEARNING PIPELINE
 # ============================================================
-
 
 def run_supervised_learning(df):
 
-    # --------------------------------------------------------
-    # Create features and target
-    # --------------------------------------------------------
-
-    X, y = create_features_and_target(df)
-
-
-    # --------------------------------------------------------
-    # Train / test split
-    # --------------------------------------------------------
+    X, y = create_features_and_target(
+        df
+    )
 
     (
         X_train,
@@ -755,55 +667,37 @@ def run_supervised_learning(df):
         y
     )
 
-
-    # --------------------------------------------------------
-    # Preprocessing
-    # --------------------------------------------------------
-
-    preprocessor = create_preprocessor()
-
-
-    # --------------------------------------------------------
-    # Baseline
-    # --------------------------------------------------------
-
-    baseline = train_models(
-        X_train,
-        y_train,
-        preprocessor
-    )
-
-    baseline_pred = baseline.predict(
-        X_test
-    )
-
-    baseline_accuracy = accuracy_score(
-        y_test,
-        baseline_pred
+    print(
+        f"\nTraining Samples: {len(X_train)}"
     )
 
     print(
-        f"Baseline Accuracy: "
-        f"{baseline_accuracy:.4f}"
+        f"Testing Samples: {len(X_test)}"
     )
 
-    print("=" * 70)
+    print(
+        "\n--- BASELINE MODEL ---"
+    )
 
+    train_baseline(
+        X_train,
+        X_test,
+        y_train,
+        y_test
+    )
 
-    # --------------------------------------------------------
-    # Train original models
-    # --------------------------------------------------------
+    print(
+        "\n--- TRAINING MODELS ---"
+    )
 
     models = train_all_models(
         X_train,
-        y_train,
-        preprocessor
+        y_train
     )
 
-
-    # --------------------------------------------------------
-    # Test-set evaluation
-    # --------------------------------------------------------
+    print(
+        "\n--- MODEL EVALUATION ---"
+    )
 
     model_results = evaluate_all_models(
         models,
@@ -811,10 +705,9 @@ def run_supervised_learning(df):
         y_test
     )
 
-
-    # --------------------------------------------------------
-    # Cross-validation for ALL original models
-    # --------------------------------------------------------
+    print(
+        "\n--- CROSS-VALIDATION ---"
+    )
 
     cv_results = cross_validate_models(
         models,
@@ -822,146 +715,96 @@ def run_supervised_learning(df):
         y_train
     )
 
-
-    # --------------------------------------------------------
-    # Keep Random Forest CV scores for compatibility
-    # --------------------------------------------------------
-
-    random_forest_cv_scores = cross_val_score(
-        models["Random Forest"],
-        X_train,
-        y_train,
-        cv=5,
-        scoring="f1",
-        n_jobs=-1
+    print(
+        "\n--- DECISION TREE TUNING ---"
     )
-
-
-    # --------------------------------------------------------
-    # Hyperparameter tuning
-    # --------------------------------------------------------
 
     tree_grid = tune_decision_tree(
         X_train,
-        y_train,
-        preprocessor
+        y_train
+    )
+
+    print(
+        "\n--- RANDOM FOREST TUNING ---"
     )
 
     rf_grid = tune_random_forest(
         X_train,
-        y_train,
-        preprocessor
+        y_train
     )
 
-
-    # --------------------------------------------------------
-    # Final model comparison
-    # --------------------------------------------------------
+    print(
+        "\n--- FINAL MODEL COMPARISON ---"
+    )
 
     (
-        final_models,
-        final_model_results
+        final_model_results,
+        final_models
     ) = create_final_model_comparison(
-        models,
+        model_results,
         tree_grid,
         rf_grid,
         X_test,
         y_test
     )
 
-
-    # --------------------------------------------------------
-    # Final CV comparison
-    # --------------------------------------------------------
-
-    final_cv_results = (
-        create_final_cv_comparison(
-            cv_results,
-            tree_grid,
-            rf_grid
-        )
+    final_cv_results = create_final_cv_comparison(
+        cv_results,
+        tree_grid,
+        rf_grid
     )
-
-
-    # --------------------------------------------------------
-    # Select final model
-    #
-    # Model selection is based on CV F1,
-    # not the test set.
-    # --------------------------------------------------------
 
     best_model_name = (
-        final_cv_results.iloc[0]["Model"]
+        final_model_results.iloc[0]["Model"]
     )
 
-    best_model = (
-        final_models[best_model_name]
-    )
+    if best_model_name == "Tuned Decision Tree":
 
-    print(
-        f"Final best model based on CV F1: "
-        f"{best_model_name}"
-    )
+        best_model = (
+            tree_grid.best_estimator_
+        )
 
+    elif best_model_name == "Tuned Random Forest":
 
-    # --------------------------------------------------------
-    # Tuned Random Forest result
-    # --------------------------------------------------------
+        best_model = (
+            rf_grid.best_estimator_
+        )
 
-    tuned_random_forest = (
-        rf_grid.best_estimator_
-    )
+    else:
+
+        best_model = models[
+            best_model_name
+        ]
 
     tuned_rf_results = evaluate_model(
-        tuned_random_forest,
+        rf_grid.best_estimator_,
         X_test,
         y_test,
         "Tuned Random Forest"
     )
 
-
-    # --------------------------------------------------------
-    # Return everything
-    # --------------------------------------------------------
+    cv_scores = cross_val_score(
+        rf_grid.best_estimator_,
+        X_train,
+        y_train,
+        cv=5,
+        scoring="f1"
+    )
 
     return {
-
         "X_test": X_test,
-
         "y_test": y_test,
-
         "models": models,
-
         "model_results": model_results,
-
         "cv_results": cv_results,
-
         "final_models": final_models,
-
-        "final_model_results":
-            final_model_results,
-
-        "final_cv_results":
-            final_cv_results,
-
-        "best_model_name":
-            best_model_name,
-
-        "best_model":
-            best_model,
-
-        "tuned_random_forest":
-            tuned_random_forest,
-
-        "tuned_rf_results":
-            tuned_rf_results,
-
-        "tree_grid":
-            tree_grid,
-
-        "rf_grid":
-            rf_grid,
-
-        "cv_scores":
-            random_forest_cv_scores
+        "final_model_results": final_model_results,
+        "final_cv_results": final_cv_results,
+        "best_model_name": best_model_name,
+        "best_model": best_model,
+        "tuned_random_forest": rf_grid.best_estimator_,
+        "tuned_rf_results": tuned_rf_results,
+        "tree_grid": tree_grid,
+        "rf_grid": rf_grid,
+        "cv_scores": cv_scores
     }

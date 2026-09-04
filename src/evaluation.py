@@ -15,18 +15,18 @@ from sklearn.metrics import (
 )
 
 
+# ============================================================
+# MODEL EVALUATION
+# ============================================================
+
 def evaluate_model(model, X_test, y_test, model_name):
 
     predictions = model.predict(X_test)
-
     probabilities = model.predict_proba(X_test)[:, 1]
 
     return {
         "Model": model_name,
-        "Accuracy": accuracy_score(
-            y_test,
-            predictions
-        ),
+        "Accuracy": accuracy_score(y_test, predictions),
         "Precision": precision_score(
             y_test,
             predictions,
@@ -59,18 +59,16 @@ def compare_models(results):
         .reset_index(drop=True)
     )
 
-    display(
-        model_results.style.format({
-            "Accuracy": "{:.3f}",
-            "Precision": "{:.3f}",
-            "Recall": "{:.3f}",
-            "F1": "{:.3f}",
-            "ROC-AUC": "{:.3f}"
-        })
-    )
+    print("\nModel Comparison:")
+
+    display(model_results.round(3))
 
     return model_results
 
+
+# ============================================================
+# CONFUSION MATRIX
+# ============================================================
 
 def show_confusion_matrix(best_model, X_test, y_test):
 
@@ -101,16 +99,16 @@ def show_confusion_matrix(best_model, X_test, y_test):
     plt.title("Confusion Matrix — Final Best Model")
     plt.xlabel("Predicted")
     plt.ylabel("Actual")
-
     plt.show()
 
     return best_predictions
 
 
-def show_classification_report(
-    y_test,
-    best_predictions
-):
+# ============================================================
+# CLASSIFICATION REPORT
+# ============================================================
+
+def show_classification_report(y_test, best_predictions):
 
     print(
         classification_report(
@@ -124,10 +122,11 @@ def show_classification_report(
     )
 
 
-def show_feature_importance(
-    best_model,
-    best_model_name
-):
+# ============================================================
+# FEATURE IMPORTANCE
+# ============================================================
+
+def show_feature_importance(best_model, best_model_name):
 
     tree_models = [
         "Decision Tree",
@@ -180,7 +179,6 @@ def show_feature_importance(
             plt.title(
                 "Most Important Features — Final Best Model"
             )
-
             plt.xlabel("Feature Importance")
             plt.ylabel("Feature")
 
@@ -197,20 +195,18 @@ def show_feature_importance(
     return None
 
 
-def analyze_errors(
-    best_model,
-    X_test,
-    y_test
-):
+# ============================================================
+# ERROR ANALYSIS
+# ============================================================
+
+def analyze_errors(best_model, X_test, y_test):
 
     predictions = best_model.predict(X_test)
 
     error_analysis = X_test.copy()
 
     error_analysis["Actual"] = y_test.values
-
     error_analysis["Predicted"] = predictions
-
     error_analysis["Error"] = (
         error_analysis["Actual"]
         != error_analysis["Predicted"]
