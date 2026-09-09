@@ -4,15 +4,9 @@ import seaborn as sns
 
 from IPython.display import display
 
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    confusion_matrix,
-    classification_report
-)
+from sklearn.metrics import (accuracy_score, precision_score,
+                              recall_score, f1_score, roc_auc_score, 
+                                confusion_matrix, classification_report)
 
 
 # ============================================================
