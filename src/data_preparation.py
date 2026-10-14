@@ -1,7 +1,11 @@
 import numpy as np
 import pandas as pd
+from pathlib import Path
 from IPython.display import display
+import logging
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 # ============================================================
 # LOAD DATA
@@ -107,14 +111,29 @@ def engineer_features(df):
 
 
 # ============================================================
+# SAVE PROCESSED DATA TO DEVICE
+# ============================================================
+def save_processed_data_to_device(df, output_path):
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_parquet(output_path, index=False)
+    logger.info(f"Processed data is saved into path: {output_path}")
+
+
+# ============================================================
 # COMPLETE DATA PREPARATION PIPELINE
 # ============================================================
 def prepare_data(df):
+
+    df = df.copy()
+
+    logger.info("Starting data preparation pipeline...")
+
     df = prepare_dates(df)
     df = create_target(df)
     df = engineer_features(df)
 
-    print(f" --- Data Preparation Completed ---\nPrepared Dataset Shape: {df.shape}")
+    logger.info(f" --- Data Preparation Completed ---\nPrepared Dataset Shape: {df.shape}")
     print("=" * 70)
     
     return df
