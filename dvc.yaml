@@ -1,0 +1,9 @@
+stages:
+  prepare:
+    cmd: python prepare_data.py
+    deps:
+      - prepare_data.py
+      - src/data_preparation.py
+      - data/raw/superstore_v1.csv
+    outs:
+      - data/processed/superstore_v1.parquet

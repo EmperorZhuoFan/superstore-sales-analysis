@@ -1,0 +1,22 @@
+schema: '2.0'
+stages:
+  prepare:
+    cmd: python prepare_data.py
+    deps:
+    - path: data/raw/superstore_v1.csv
+      hash: md5
+      md5: b480623d7e5963126606d65673aa4ea7
+      size: 1171469
+    - path: prepare_data.py
+      hash: md5
+      md5: 9a3cda1211e54999ef07c4a53ecff09b
+      size: 386
+    - path: src/data_preparation.py
+      hash: md5
+      md5: 5eed2ea2f6f60d3876202806624f352d
+      size: 4865
+    outs:
+    - path: data/processed/superstore_v1.parquet
+      hash: md5
+      md5: fdeb86c3ec1b1956c81a0cd09ddc45f6
+      size: 308392
