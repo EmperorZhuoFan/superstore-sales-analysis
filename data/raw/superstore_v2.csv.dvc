@@ -1,0 +1,5 @@
+outs:
+- md5: 57cafcc317bb19feea45317cd339ecae
+  size: 1176557
+  hash: md5
+  path: superstore_v2.csv
