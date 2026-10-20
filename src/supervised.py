@@ -16,7 +16,8 @@ from sklearn.ensemble import BaggingClassifier, RandomForestClassifier, AdaBoost
 from sklearn.dummy import DummyClassifier
 
 from sklearn.metrics import accuracy_score
-
+from src.mlflow_tracking import track_model_run
+from src.mlflow_tracking import log_artifact
 from src.evaluation import evaluate_model, compare_models
 
 # ============================================================
@@ -126,42 +127,52 @@ def train_baseline(X_train, X_test, y_train, y_test):
 # ============================================================
 # TRAIN ALL MODELS
 # ============================================================
-
 def train_all_models(X_train, y_train):
 
     preprocessor = create_preprocessor()
 
     models = {
-
         "Logistic Regression": Pipeline([
             ("preprocessor", preprocessor),
-            ("model", LogisticRegression( max_iter=1000, random_state=42))
+            ("model", LogisticRegression(max_iter=1000, random_state=42))
         ]),
 
         "Decision Tree": Pipeline([
             ("preprocessor", create_preprocessor()),
-            ("model", DecisionTreeClassifier( max_depth=6, min_samples_leaf=10, random_state=42))
+            ("model", DecisionTreeClassifier(
+                max_depth=6, min_samples_leaf=10, random_state=42
+            ))
         ]),
 
         "Bagging": Pipeline([
             ("preprocessor", create_preprocessor()),
-            ("model", BaggingClassifier(estimator=DecisionTreeClassifier(max_depth=6, random_state=42),
-                                   n_estimators=100, random_state=42, n_jobs=-1))
+            ("model", BaggingClassifier(
+                estimator=DecisionTreeClassifier(max_depth=6, random_state=42),
+                n_estimators=100, random_state=42, n_jobs=-1
+            ))
         ]),
 
         "Random Forest": Pipeline([
             ("preprocessor", create_preprocessor()),
-            ("model", RandomForestClassifier( n_estimators=300, max_depth=10, min_samples_leaf=5, random_state=42, n_jobs=-1))
+            ("model", RandomForestClassifier(
+                n_estimators=300, max_depth=10,
+                min_samples_leaf=5, random_state=42, n_jobs=-1
+            ))
         ]),
 
         "AdaBoost": Pipeline([
             ("preprocessor", create_preprocessor()),
-            ("model", AdaBoostClassifier(n_estimators=100, learning_rate=0.5, random_state=42))
+            ("model", AdaBoostClassifier(
+                n_estimators=100, learning_rate=0.5, random_state=42
+            ))
         ]),
 
         "Gradient Boosting": Pipeline([
             ("preprocessor", create_preprocessor()),
-            ("model", GradientBoostingClassifier(n_estimators=150, learning_rate=0.05, max_depth=3, random_state=42))
+            ("model", GradientBoostingClassifier(
+                n_estimators=150, learning_rate=0.05,
+                max_depth=3, random_state=42
+            ))
         ])
     }
 
@@ -169,57 +180,98 @@ def train_all_models(X_train, y_train):
 
     for name, model in models.items():
 
+        estimator = model.named_steps["model"]
+
+        parameters = {
+            key: value
+            for key, value in estimator.get_params(deep=False).items()
+            if isinstance(value, (str, int, float, bool))
+            or value is None
+        }
+
         print(f"Training {name}...")
-        model.fit( X_train, y_train)
+
+        with track_model_run(name, parameters=parameters):
+            model.fit(X_train, y_train)
+
         trained_models[name] = model
 
     return trained_models
 
-
 # ============================================================
 # MODEL EVALUATION
 # ============================================================
-
 def evaluate_all_models(models, X_test, y_test):
-
     results = []
 
     for name, model in models.items():
-
         result = evaluate_model(model, X_test, y_test, name)
         results.append(result)
 
-    model_results = compare_models(results)
+        with track_model_run(
+            f"{name} Test Evaluation",
+            tags={"evaluation_type": "test"}
+        ):
+            from src.mlflow_tracking import log_metrics
 
-    return model_results
+            log_metrics({
+                key: value
+                for key, value in result.items()
+                if key != "Model"
+            })
 
+    comparison = compare_models(results)
+
+    artifact_path = "model_comparison.csv"
+    comparison.to_csv(artifact_path, index=False)
+
+    with track_model_run("Model Comparison", tags={"artifact_type": "comparison"}):
+        log_artifact(artifact_path)
+
+    return comparison
 
 # ============================================================
 # CROSS-VALIDATION
 # ============================================================
-
 def cross_validate_models(models, X_train, y_train):
 
     cv_results = []
 
     for name, model in models.items():
 
-        scores = cross_val_score( model, X_train, y_train, cv=5, scoring="f1")
-        cv_results.append({
-            "Model": name,
-            "Mean F1": scores.mean(),
-            "Std": scores.std()
-        })
+        with track_model_run(
+            model_name=f"{name} Cross-Validation",
+            tags={"evaluation_type": "cross_validation"}
+        ) as run:
 
-    cv_results = pd.DataFrame(cv_results).sort_values("Mean F1", ascending=False)
+            scores = cross_val_score(
+                model, X_train, y_train, cv=5, scoring="f1"
+            )
+
+            mean_f1 = scores.mean()
+            std_f1 = scores.std()
+
+            from src.mlflow_tracking import log_metrics
+            log_metrics({
+                "cv_mean_f1": mean_f1,
+                "cv_std_f1": std_f1
+            })
+
+            cv_results.append({
+                "Model": name,
+                "Mean F1": mean_f1,
+                "Std": std_f1
+            })
+
+    cv_results = pd.DataFrame(cv_results).sort_values(
+        "Mean F1", ascending=False
+    )
 
     print("Cross-Validation Results:")
-    display(
-        cv_results.style.format({
-            "Mean F1": "{:.3f}",
-            "Std": "{:.3f}"
-        })
-    )
+    display(cv_results.style.format({
+        "Mean F1": "{:.3f}",
+        "Std": "{:.3f}"
+    }))
 
     return cv_results
 
@@ -227,7 +279,6 @@ def cross_validate_models(models, X_train, y_train):
 # ============================================================
 # DECISION TREE TUNING
 # ============================================================
-
 def tune_decision_tree(X_train, y_train):
 
     pipeline = Pipeline([
@@ -241,9 +292,17 @@ def tune_decision_tree(X_train, y_train):
         "model__criterion": ["gini", "entropy"]
     }
 
-    grid = GridSearchCV(pipeline, param_grid, cv=5, scoring="f1", n_jobs=-1)
+    with track_model_run("Tuned Decision Tree") as run:
 
-    grid.fit(X_train, y_train)
+        grid = GridSearchCV(
+            pipeline, param_grid, cv=5, scoring="f1", n_jobs=-1
+        )
+        grid.fit(X_train, y_train)
+
+        from src.mlflow_tracking import log_parameters, log_metrics
+
+        log_parameters(grid.best_params_)
+        log_metrics({"cv_best_f1": grid.best_score_})
 
     print("Best Decision Tree Parameters:")
     print(grid.best_params_)
@@ -251,34 +310,39 @@ def tune_decision_tree(X_train, y_train):
 
     return grid
 
-
 # ============================================================
 # RANDOM FOREST TUNING
 # ============================================================
-
 def tune_random_forest(X_train, y_train):
 
     pipeline = Pipeline([
-        ( "preprocessor", create_preprocessor() ),
-        ( "model", RandomForestClassifier( random_state=42, n_jobs=-1))
+        ("preprocessor", create_preprocessor()),
+        ("model", RandomForestClassifier(random_state=42, n_jobs=-1))
     ])
 
     param_grid = {
         "model__n_estimators": [100, 200, 300],
-        "model__max_depth": [ 5, 10, 15, None],
-        "model__min_samples_leaf": [ 1, 5, 10]
+        "model__max_depth": [5, 10, 15, None],
+        "model__min_samples_leaf": [1, 5, 10]
     }
 
-    grid = GridSearchCV(pipeline, param_grid, cv=5, scoring="f1", n_jobs=-1 )
+    with track_model_run("Tuned Random Forest") as run:
 
-    grid.fit( X_train, y_train)
+        grid = GridSearchCV(
+            pipeline, param_grid, cv=5, scoring="f1", n_jobs=-1
+        )
+        grid.fit(X_train, y_train)
 
-    print("Best Random Forest Parameters:" )
+        from src.mlflow_tracking import log_parameters, log_metrics
+
+        log_parameters(grid.best_params_)
+        log_metrics({"cv_best_f1": grid.best_score_})
+
+    print("Best Random Forest Parameters:")
     print(grid.best_params_)
+    print(f"Best Random Forest CV F1: {grid.best_score_:.4f}")
 
-    print(f"Best Random Forest CV F1: {grid.best_score_:.4f}" )
-
-    return grid
+    return grid 
 
 
 # ============================================================
@@ -420,8 +484,8 @@ def run_supervised_learning(df):
     tuned_rf_results = evaluate_model( rf_grid.best_estimator_, X_test, y_test, "Tuned Random Forest" )
 
     cv_scores = cross_val_score( rf_grid.best_estimator_, X_train, y_train, cv=5, scoring="f1")
-
     return {
+        "X_train": X_train,
         "X_test": X_test,
         "y_test": y_test,
         "models": models,

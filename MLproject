@@ -1,0 +1,6 @@
+
+name: superstore-sales-analysis
+
+entry_points:
+  main:
+    command: "python main.py"

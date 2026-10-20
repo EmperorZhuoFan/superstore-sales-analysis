@@ -1,3 +1,4 @@
+
 # Python
 __pycache__/
 *.py[cod]
@@ -10,5 +11,16 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# vs code
+# VS Code
 .vscode/
+
+# MLflow local tracking data
+mlflow.db
+mlruns/
+
+# Generated data and reports
+processed_superstore.parquet
+model_comparison.csv
+
+# Temporary serving payload
+serving_payload.json
