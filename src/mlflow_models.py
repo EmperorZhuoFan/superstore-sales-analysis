@@ -97,6 +97,7 @@ def log_and_evaluate_model(
             data=evaluation_data,
             targets="target",
             model_type="classifier",
+            evaluator_config={"log_explainer": False},
         )
 
         print("\nMLflow evaluation metrics:")
