@@ -1,3 +1,4 @@
+
 import json
 from pathlib import Path
 
@@ -57,11 +58,11 @@ def log_and_evaluate_model(
         mlflow.set_tag("model_name", "Gradient Boosting")
 
         sklearn_info = mlflow.sklearn.log_model(
-        sk_model=estimator,
-        name="profit_status_sklearn",
-        signature=signature,
-        input_example=input_example,
-        skops_trusted_types=["sklearn.tree._tree.Tree"],
+            sk_model=estimator,
+            name="profit_status_sklearn",
+            signature=signature,
+            input_example=input_example,
+            skops_trusted_types=["sklearn.tree._tree.Tree"],
         )
 
         mlflow.pyfunc.log_model(
@@ -97,7 +98,7 @@ def log_and_evaluate_model(
             data=evaluation_data,
             targets="target",
             model_type="classifier",
-            evaluator_config={"log_explainer": False},
+            evaluators=["classifier"],
         )
 
         print("\nMLflow evaluation metrics:")
