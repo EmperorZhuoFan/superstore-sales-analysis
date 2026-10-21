@@ -287,15 +287,19 @@ This project strengthened my ability to:
 
 This project represents my current data-science foundation stage and serves as a practical bridge toward machine-learning development.
 
+### CI/CD with CML
+
+The GitHub Actions workflow runs the project tests, trains the Superstore classifier, and generates accuracy and weighted F1 metrics with a plot. On pull requests, CML publishes the generated report as a PR comment.
+
 ---
 
 ## Roadmap
 
 | Stage         | Focus                                                         |
 | ------------- | ------------------------------------------------------------- |
-| **Completed** | Python, pandas, statistics, SQL, EDA, visualization, Power BI |
+| **Completed** | Python, pandas, statistics, SQL, EDA, visualization, Power BI, CI/CD with CML |
 | **Next**      | Machine Learning and model development                        |
-| **Later**     | MLOps, MLflow, Docker, DVC, CI/CD, model monitoring           |
+| **Later**     | Expand the DVC pipeline and remote-data workflow; model monitoring |
 | **Future**    | Deep Learning, PyTorch, NLP, Transformers                     |
 | **Future**    | LLM foundations, fine-tuning, evaluation, Hugging Face        |
 
