@@ -2,11 +2,14 @@
 name: Superstore CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
 
 jobs:
-  build:
+  test:
+    name: Test Superstore
     runs-on: ubuntu-latest
 
     steps:
