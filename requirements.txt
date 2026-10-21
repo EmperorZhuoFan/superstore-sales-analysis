@@ -6,3 +6,4 @@ scikit-learn
 mlflow==3.16.1
 ipython
 great_expectations
+tabulate
