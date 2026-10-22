@@ -10,7 +10,7 @@ from src.data_quality import validate_data_quality
 from src.eda import setup_visualization, run_eda
 
 from src.supervised import run_supervised_learning
-from src.mlflow_models import log_and_evaluate_model
+from src.mlflow_models import log_and_evaluate_model 
 
 from src.evaluation import (
     show_confusion_matrix,
