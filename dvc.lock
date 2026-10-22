@@ -20,3 +20,27 @@ stages:
       hash: md5
       md5: fdeb86c3ec1b1956c81a0cd09ddc45f6
       size: 308392
+  train:
+    cmd: python -m src.dvc_training
+    deps:
+    - path: data/processed/superstore_v1.parquet
+      hash: md5
+      md5: fdeb86c3ec1b1956c81a0cd09ddc45f6
+      size: 308392
+    - path: src/data_preparation.py
+      hash: md5
+      md5: 5eed2ea2f6f60d3876202806624f352d
+      size: 4865
+    - path: src/dvc_training.py
+      hash: md5
+      md5: 9349f641fee559c4ed3eaec1ca2929f2
+      size: 871
+    - path: src/supervised.py
+      hash: md5
+      md5: 5d39a2c7fbc76436301be9655a3d7654
+      size: 14450
+    outs:
+    - path: metrics.json
+      hash: md5
+      md5: ee54e3d5f5ede5250ad20cfb5b2556d0
+      size: 210

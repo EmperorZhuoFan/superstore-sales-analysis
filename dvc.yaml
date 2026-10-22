@@ -7,3 +7,13 @@ stages:
       - data/raw/superstore_v1.csv
     outs:
       - data/processed/superstore_v1.parquet
+
+  train:
+    cmd: python -m src.dvc_training
+    deps:
+      - src/dvc_training.py
+      - src/supervised.py
+      - src/data_preparation.py
+      - data/processed/superstore_v1.parquet
+    metrics:
+      - metrics.json

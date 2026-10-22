@@ -27,3 +27,4 @@ serving_payload.json
 # CML generated reports
 reports/
 report.md
+/metrics.json
