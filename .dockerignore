@@ -1,0 +1,12 @@
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+mlruns
+mlflow.db
+data
+images
+tests
+superstore.tar

@@ -1,20 +1,13 @@
 FROM python:3.13-slim
 
-ARG APP_VERSION=1.0
-ENV APP_ENV=production
-
-RUN useradd --create-home appuser
-
 WORKDIR /app
 
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY --chown=appuser:appuser . .
+COPY api.py .
+COPY deployment/ ./deployment/
 
-RUN chown -R appuser:appuser /app
+EXPOSE 8000
 
-USER appuser
-
-CMD ["python", "main.py"]
+CMD ["sh", "-c", "uvicorn api:app --host 0.0.0.0 --port ${PORT:-8000}"]

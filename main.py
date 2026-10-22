@@ -4,6 +4,7 @@ from src.data_preparation import (
     prepare_data,
     save_processed_data_to_device
 )
+from pathlib import Path
 
 from src.data_quality import validate_data_quality
 
@@ -136,12 +137,16 @@ def main():
     print("=" * 70)
     print("MLFLOW MODELS — LOG, LOAD & EVALUATE")
     print("=" * 70)
-
-    log_and_evaluate_model(
+    mlflow_results = log_and_evaluate_model(
         estimator=best_model,
         X_train=supervised_results["X_train"],
         X_test=X_test,
         y_test=y_test,
+    )
+
+    Path("model_uri.txt").write_text(
+        mlflow_results["model_uri"],
+        encoding="utf-8",
     )
 
     # ============================================================

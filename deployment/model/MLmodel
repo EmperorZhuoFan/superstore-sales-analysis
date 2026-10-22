@@ -1,0 +1,45 @@
+artifact_path: file:F:/Working Plan/__Projects__/superstore/Superstore_vscode/mlruns/1/models/m-05a465f8039b47d49b915aaa6476b194/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.skops
+    predict_fn: predict
+    python_version: 3.13.0
+  sklearn:
+    code: null
+    pickled_model: model.skops
+    serialization_format: skops
+    sklearn_version: 1.8.0
+    skops_trusted_types:
+    - sklearn.tree._tree.Tree
+is_signature_from_type_hint: false
+mlflow_version: 3.16.1
+model_id: m-05a465f8039b47d49b915aaa6476b194
+model_size_bytes: 5092072
+model_uuid: m-05a465f8039b47d49b915aaa6476b194
+prompts: null
+run_id: 6851427f549e4b80a5502dca7d2be17b
+saved_input_example_info:
+  artifact_path: input_example.json
+  pandas_orient: split
+  serving_input_path: serving_input_example.json
+  type: dataframe
+signature:
+  inputs: '[{"type": "double", "name": "Sales", "required": true}, {"type": "long",
+    "name": "Quantity", "required": true}, {"type": "double", "name": "Discount",
+    "required": true}, {"type": "string", "name": "Category", "required": true}, {"type":
+    "string", "name": "Sub-Category", "required": true}, {"type": "string", "name":
+    "Segment", "required": true}, {"type": "string", "name": "Region", "required":
+    true}, {"type": "string", "name": "Ship Mode", "required": true}, {"type": "integer",
+    "name": "Order Year", "required": true}, {"type": "integer", "name": "Order Month",
+    "required": true}, {"type": "integer", "name": "Order Quarter", "required": true},
+    {"type": "integer", "name": "Order Day", "required": true}, {"type": "integer",
+    "name": "Order Day of Week", "required": true}, {"type": "double", "name": "Sales
+    Per Unit", "required": true}]'
+  outputs: '[{"type": "tensor", "tensor-spec": {"dtype": "int64", "shape": [-1]}}]'
+  params: null
+type_hint_from_example: false
+utc_time_created: '2026-10-22 04:57:24.981242'
