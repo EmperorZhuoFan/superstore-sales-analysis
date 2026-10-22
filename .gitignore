@@ -29,3 +29,4 @@ reports/
 report.md
 /metrics.json
 !metrics.json
+/metrics.json
