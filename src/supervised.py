@@ -287,7 +287,7 @@ def tune_decision_tree(X_train, y_train):
     ])
 
     param_grid = {
-        "model__max_depth": [2, 3, 5],
+        "model__max_depth": [2, 4, 6],
         "model__min_samples_leaf": [1, 5, 10, 20],
         "model__criterion": ["gini", "entropy"]
     }
