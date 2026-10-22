@@ -37,8 +37,8 @@ stages:
       size: 871
     - path: src/supervised.py
       hash: md5
-      md5: 5d39a2c7fbc76436301be9655a3d7654
-      size: 14450
+      md5: 5852917cc5d6dfd5a815f5b32b4ba91d
+      size: 14440
     outs:
     - path: metrics.json
       hash: md5
