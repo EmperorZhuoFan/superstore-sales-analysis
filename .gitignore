@@ -28,3 +28,4 @@ serving_payload.json
 reports/
 report.md
 /metrics.json
+!metrics.json
