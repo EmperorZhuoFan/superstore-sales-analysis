@@ -11,7 +11,7 @@ import streamlit as st
 
 API_URL = os.getenv(
     "PREDICTION_API_URL",
-    "http://127.0.0.1:8000/predict",
+    "https://superstore-api.omar6325.blitz.cloud/predict",
 )
 
 st.set_page_config(
@@ -704,3 +704,4 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
