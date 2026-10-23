@@ -9,3 +9,6 @@ skops==0.16.0
 fastapi
 uvicorn[standard]
 pydantic
+
+streamlit
+requests

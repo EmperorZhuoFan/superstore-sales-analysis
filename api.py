@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 MODEL_PATH = Path(__file__).parent / "deployment" / "model"
 model = mlflow.pyfunc.load_model(str(MODEL_PATH))
-
+ 
 
 # ============================================================
 # LOAD MODEL
